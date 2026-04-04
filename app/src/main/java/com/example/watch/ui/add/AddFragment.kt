@@ -31,7 +31,10 @@ class AddFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val dao = MovieDatabase.getInstance(requireContext()).movieDao()
         repository = MovieRepository(dao)
+
+        // Получаем выбранный фильм из аргументов
         selectedMovie = arguments?.getParcelable<OmdbMovie>("selectedMovie")
+
         selectedMovie?.let { movie ->
             binding.etQuery.setText(movie.title)
             binding.etYear.setText(movie.year)
@@ -43,7 +46,6 @@ class AddFragment : Fragment() {
             val query = binding.etQuery.text.toString().trim()
             val year = binding.etYear.text.toString().trim()
             if (query.isNotEmpty()) {
-                // Передаём параметры поиска через Bundle
                 val bundle = Bundle().apply {
                     putString("query", query)
                     putString("year", year.ifEmpty { null })
@@ -59,7 +61,7 @@ class AddFragment : Fragment() {
                     title = movie.title,
                     year = movie.year,
                     posterUrl = movie.posterUrl,
-                    genre = movie.genre
+                    type = movie.type   // сохраняем тип как genre (или добавьте поле type в сущность Movie)
                 )
                 lifecycleScope.launch {
                     repository.addMovie(movieEntity)

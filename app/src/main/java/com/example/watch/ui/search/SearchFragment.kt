@@ -1,7 +1,6 @@
 package com.example.watch.ui.search
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +29,6 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
 
-        // Получаем аргументы из Bundle вручную
         val query = arguments?.getString("query") ?: ""
         val year = arguments?.getString("year")
         performSearch(query, year)
@@ -38,11 +36,11 @@ class SearchFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = SearchAdapter { movie ->
-            // Передаём выбранный фильм обратно на AddFragment через Bundle
+            // Передаём выбранный фильм на AddFragment через Bundle
             val bundle = Bundle().apply {
                 putParcelable("selectedMovie", movie)
             }
-            findNavController().navigate(R.id.action_search_to_add, bundle)
+            findNavController().navigate(R.id.addFragment, bundle)
         }
         binding.rvSearchResults.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSearchResults.adapter = adapter
@@ -50,22 +48,17 @@ class SearchFragment : Fragment() {
 
     private fun performSearch(query: String, year: String?) {
         lifecycleScope.launch {
-            //Log.d("API_KEY_TEST", "API_KEY = ${BuildConfig.API_KEY}")
             try {
                 val response = RetrofitClient.api.searchMovies("174065d5", query, year)
                 if (response.response == "True") {
                     adapter.submitList(response.search ?: emptyList())
                     binding.tvEmpty.visibility = View.GONE
                 } else {
-                    // Логируем и показываем конкретную ошибку от OMDb
-                    val errorMsg = response.error ?: "Неизвестная ошибка API"
-                    Log.e("SearchFragment", "Ошибка OMDb API: $errorMsg")
-                    binding.tvEmpty.text = "Ошибка OMDb: $errorMsg"
+                    val errorMsg = response.error ?: "Неизвестная ошибка"
+                    binding.tvEmpty.text = "Ошибка: $errorMsg"
                     binding.tvEmpty.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {
-                // Логируем техническую ошибку (нет сети, таймаут, и т.д.)
-                Log.e("SearchFragment", "Техническая ошибка при запросе", e)
                 binding.tvEmpty.text = "Ошибка сети: ${e.message}"
                 binding.tvEmpty.visibility = View.VISIBLE
             }

@@ -1,12 +1,12 @@
 package com.example.watch.db
 
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import android.content.Context
 import com.example.watch.model.Movie
 
-@Database(entities = [Movie::class], version = 1, exportSchema = false)
+@Database(entities = [Movie::class], version = 2, exportSchema = false)  // увеличили version
 abstract class MovieDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
 
@@ -20,7 +20,8 @@ abstract class MovieDatabase : RoomDatabase() {
                     context.applicationContext,
                     MovieDatabase::class.java,
                     "watch_database"
-                ).build()
+                ).fallbackToDestructiveMigration()  // разрешаем пересоздание при смене схемы
+                    .build()
                 INSTANCE = instance
                 instance
             }

@@ -10,5 +10,5 @@ data class Movie(
     val title: String,
     val year: String,
     val posterUrl: String,
-    val genre: String? = null // для SearchScreen
+    val type: String? = null   // "movie", "series", "episode"
 )

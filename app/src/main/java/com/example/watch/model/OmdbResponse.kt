@@ -24,6 +24,8 @@ data class OmdbMovie(
     val imdbID: String,
     @SerializedName("Poster")
     val posterUrl: String,
+    @SerializedName("Type")
+    val type: String? = null,   // "movie", "series", "episode"
     @SerializedName("Genre")
     val genre: String? = null
-) : Parcelable   // <-- обязательно implements Parcelable
+) : Parcelable

@@ -1,5 +1,6 @@
 package com.example.watch.ui.search
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -26,13 +27,16 @@ class SearchAdapter(private val onItemClick: (OmdbMovie) -> Unit) : RecyclerView
 
     override fun getItemCount() = items.size
 
-    class ViewHolder(private val binding: ItemSearchResultBinding, private val onItemClick: (OmdbMovie) -> Unit) : RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(private val binding: ItemSearchResultBinding, private val onItemClick: (OmdbMovie) -> Unit) :
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(movie: OmdbMovie) {
             binding.tvTitle.text = movie.title
             binding.tvYear.text = movie.year
-            binding.tvGenre.text = movie.genre ?: "N/A"
+            binding.tvType.text = "Type: ${movie.type ?: "N/A"}"
             Glide.with(binding.root).load(movie.posterUrl).into(binding.ivPoster)
-            itemView.setOnClickListener { onItemClick(movie) }
+            itemView.setOnClickListener {
+                onItemClick(movie)
+            }
         }
     }
 }
