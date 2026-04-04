@@ -18,8 +18,21 @@ class MovieAdapter(
         }
     var selectedIds: Set<String> = emptySet()
         set(value) {
+            val old = field
             field = value
-            notifyDataSetChanged()
+            // Обновляем только те элементы, у которых изменился статус
+            val changedPositions = mutableListOf<Int>()
+            for (i in items.indices) {
+                val id = items[i].imdbID
+                val wasSelected = old.contains(id)
+                val isSelected = value.contains(id)
+                if (wasSelected != isSelected) {
+                    changedPositions.add(i)
+                }
+            }
+            changedPositions.forEach { position ->
+                notifyItemChanged(position)
+            }
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
