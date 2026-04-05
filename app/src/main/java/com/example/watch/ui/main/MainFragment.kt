@@ -3,21 +3,19 @@ package com.example.watch.ui.main
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.watch.R
-import com.example.watch.data.MovieRepository
 import com.example.watch.databinding.FragmentMainBinding
-import com.example.watch.db.MovieDatabase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels { MainViewModelFactory(requireContext()) }
     private lateinit var adapter: MovieAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -26,19 +24,13 @@ class MainFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
         super.onViewCreated(view, savedInstanceState)
-        val dao = MovieDatabase.getInstance(requireContext()).movieDao()
-        val repository = MovieRepository(dao)
-        viewModel = MainViewModel(repository)
-
         setupRecyclerView()
         observeData()
 
         binding.fabAdd.setOnClickListener {
             findNavController().navigate(R.id.action_main_to_add)
         }
-
         setHasOptionsMenu(true)
     }
 
@@ -62,7 +54,6 @@ class MainFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.selectedIds.collectLatest { ids ->
                 if (_binding != null) {
-                    // Откладываем обновление адаптера до следующего кадра
                     binding.rvWatchlist.post {
                         adapter.selectedIds = ids
                     }

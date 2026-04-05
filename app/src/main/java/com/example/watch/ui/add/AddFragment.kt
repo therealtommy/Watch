@@ -5,22 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.watch.R
-import com.example.watch.data.MovieRepository
 import com.example.watch.databinding.FragmentAddBinding
-import com.example.watch.db.MovieDatabase
-import com.example.watch.model.Movie
 import com.example.watch.model.OmdbMovie
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class AddFragment : Fragment() {
     private var _binding: FragmentAddBinding? = null
     private val binding get() = _binding!!
-    private lateinit var repository: MovieRepository
-    private var selectedMovie: OmdbMovie? = null
+    private val viewModel: AddViewModel by viewModels { AddViewModelFactory(requireContext()) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAddBinding.inflate(inflater, container, false)
@@ -29,11 +27,10 @@ class AddFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val dao = MovieDatabase.getInstance(requireContext()).movieDao()
-        repository = MovieRepository(dao)
+        observeEvents()
 
-        // Получаем выбранный фильм из аргументов
-        selectedMovie = arguments?.getParcelable<OmdbMovie>("selectedMovie")
+        val selectedMovie = arguments?.getParcelable<OmdbMovie>("selectedMovie")
+        viewModel.setSelectedMovie(selectedMovie)
 
         selectedMovie?.let { movie ->
             binding.etQuery.setText(movie.title)
@@ -55,17 +52,15 @@ class AddFragment : Fragment() {
         }
 
         binding.btnAdd.setOnClickListener {
-            selectedMovie?.let { movie ->
-                val movieEntity = Movie(
-                    imdbID = movie.imdbID,
-                    title = movie.title,
-                    year = movie.year,
-                    posterUrl = movie.posterUrl,
-                    type = movie.type   // сохраняем тип как genre (или добавьте поле type в сущность Movie)
-                )
-                lifecycleScope.launch {
-                    repository.addMovie(movieEntity)
-                    findNavController().navigateUp()
+            viewModel.addToWatchlist()
+        }
+    }
+
+    private fun observeEvents() {
+        lifecycleScope.launch {
+            viewModel.addEvent.collectLatest { event ->
+                when (event) {
+                    AddEvent.MovieAdded -> findNavController().navigateUp()
                 }
             }
         }

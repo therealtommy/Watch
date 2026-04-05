@@ -5,19 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.watch.BuildConfig
 import com.example.watch.R
 import com.example.watch.databinding.FragmentSearchBinding
-import com.example.watch.model.OmdbMovie
-import com.example.watch.network.RetrofitClient
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: SearchViewModel by viewModels { SearchViewModelFactory(requireContext()) }
     private lateinit var adapter: SearchAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -28,15 +28,17 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
+        observeState()
 
         val query = arguments?.getString("query") ?: ""
         val year = arguments?.getString("year")
-        performSearch(query, year)
+        if (query.isNotEmpty()) {
+            viewModel.search(query, year)
+        }
     }
 
     private fun setupRecyclerView() {
         adapter = SearchAdapter { movie ->
-            // Передаём выбранный фильм на AddFragment через Bundle
             val bundle = Bundle().apply {
                 putParcelable("selectedMovie", movie)
             }
@@ -46,21 +48,31 @@ class SearchFragment : Fragment() {
         binding.rvSearchResults.adapter = adapter
     }
 
-    private fun performSearch(query: String, year: String?) {
+    private fun observeState() {
         lifecycleScope.launch {
-            try {
-                val response = RetrofitClient.api.searchMovies("174065d5", query, year)
-                if (response.response == "True") {
-                    adapter.submitList(response.search ?: emptyList())
-                    binding.tvEmpty.visibility = View.GONE
-                } else {
-                    val errorMsg = response.error ?: "Неизвестная ошибка"
-                    binding.tvEmpty.text = "Ошибка: $errorMsg"
-                    binding.tvEmpty.visibility = View.VISIBLE
+            viewModel.state.collectLatest { state ->
+                when (state) {
+                    is SearchState.Initial -> {
+                        binding.tvEmpty.text = "Введите поисковый запрос"
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        adapter.submitList(emptyList())
+                    }
+                    SearchState.Loading -> {
+                        binding.tvEmpty.text = "Загрузка..."
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        adapter.submitList(emptyList())
+                    }
+                    is SearchState.Success -> {
+                        adapter.submitList(state.movies)
+                        binding.tvEmpty.visibility = if (state.movies.isEmpty()) View.VISIBLE else View.GONE
+                        if (state.movies.isEmpty()) binding.tvEmpty.text = "Ничего не найдено"
+                    }
+                    is SearchState.Error -> {
+                        binding.tvEmpty.text = "Ошибка: ${state.message}"
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        adapter.submitList(emptyList())
+                    }
                 }
-            } catch (e: Exception) {
-                binding.tvEmpty.text = "Ошибка сети: ${e.message}"
-                binding.tvEmpty.visibility = View.VISIBLE
             }
         }
     }
