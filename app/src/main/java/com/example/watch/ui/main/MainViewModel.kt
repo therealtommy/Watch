@@ -36,10 +36,4 @@ class MainViewModel(private val repository: MovieRepository) : ViewModel() {
             _selectedIds.value = emptySet()
         }
     }
-
-    fun addMovie(movie: Movie) {
-        viewModelScope.launch {
-            repository.addMovie(movie)
-        }
-    }
 }

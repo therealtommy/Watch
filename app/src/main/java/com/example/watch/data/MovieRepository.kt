@@ -16,7 +16,7 @@ class MovieRepository(
     suspend fun addMovie(movie: Movie) = movieDao.insert(movie)
 
     suspend fun removeMoviesByIds(ids: List<String>) = movieDao.deleteByIds(ids)
-
+// Сетевой поиск
     suspend fun searchMovies(query: String, year: String?): OmdbSearchResponse {
         return omdbApi.searchMovies(apiKey, query, year)
     }
