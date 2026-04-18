@@ -2,43 +2,40 @@ package com.example.watch.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.watch.domain.repository.MovieRepository
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import com.example.watch.domain.model.Movie
+import com.example.watch.domain.usecase.DeleteMoviesUseCase
+import com.example.watch.domain.usecase.GetWatchlistUseCase
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val repository: MovieRepository
+    private val getWatchlistUseCase: GetWatchlistUseCase,
+    private val deleteMoviesUseCase: DeleteMoviesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
 
     private val _effect = MutableSharedFlow<MainEffect>()
-    val effect: SharedFlow<MainEffect> = _effect.asSharedFlow()
+    val effect = _effect.asSharedFlow()
+
+    init {
+        loadWatchlist()
+    }
+
+    private fun loadWatchlist() {
+        viewModelScope.launch {
+            getWatchlistUseCase().collect { movies ->
+                _state.update { it.copy(watchlist = movies) }
+            }
+        }
+    }
 
     fun processIntent(intent: MainIntent) {
         when (intent) {
             MainIntent.LoadWatchlist -> loadWatchlist()
             is MainIntent.ToggleSelection -> toggleSelection(intent.imdbID)
             MainIntent.DeleteSelected -> deleteSelected()
-        }
-    }
-
-    private fun loadWatchlist() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            try {
-                repository.getAllWatchlist().collect { movies ->
-                    _state.update { it.copy(watchlist = movies, isLoading = false) }
-                }
-            } catch (e: Exception) {
-                _state.update { it.copy(error = e.message, isLoading = false) }
-            }
         }
     }
 
@@ -53,7 +50,7 @@ class MainViewModel(
         viewModelScope.launch {
             val ids = _state.value.selectedIds.toList()
             if (ids.isNotEmpty()) {
-                repository.removeMoviesByIds(ids)
+                deleteMoviesUseCase(ids)
                 _state.update { it.copy(selectedIds = emptySet()) }
                 _effect.emit(MainEffect.ShowMessage("Фильмы удалены"))
             } else {
@@ -61,6 +58,17 @@ class MainViewModel(
             }
         }
     }
+}
+
+data class MainState(
+    val watchlist: List<Movie> = emptyList(),
+    val selectedIds: Set<String> = emptySet()
+)
+
+sealed class MainIntent {
+    object LoadWatchlist : MainIntent()
+    data class ToggleSelection(val imdbID: String) : MainIntent()
+    object DeleteSelected : MainIntent()
 }
 
 sealed class MainEffect {
