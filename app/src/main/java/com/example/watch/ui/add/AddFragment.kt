@@ -32,7 +32,7 @@ class AddFragment : Fragment() {
         observeEffect()
 
         val selectedMovie = arguments?.getParcelable<OmdbMovie>("selectedMovie")
-        viewModel.processIntent(AddIntent.SetSelectedMovie(selectedMovie))
+        viewModel.processIntent(SetSelectedMovie(selectedMovie))
 
         selectedMovie?.let { movie ->
             binding.etQuery.setText(movie.title)
@@ -41,12 +41,22 @@ class AddFragment : Fragment() {
             Glide.with(this).load(movie.posterUrl).into(binding.ivPoster)
         }
 
-        binding.btnAdd.setOnClickListener {
-            viewModel.processIntent(AddIntent.AddToWatchlist)
-        }
-
+        // Кнопка добавления в избранное
         binding.btnAdd.setOnClickListener {
             viewModel.processIntent(AddToWatchlist)
+        }
+
+        // Кнопка поиска — её не было! Добавляем:
+        binding.btnSearch.setOnClickListener {
+            val query = binding.etQuery.text.toString().trim()
+            val year = binding.etYear.text.toString().trim()
+            if (query.isNotEmpty()) {
+                val bundle = Bundle().apply {
+                    putString("query", query)
+                    putString("year", year.ifEmpty { null })
+                }
+                findNavController().navigate(R.id.action_add_to_search, bundle)
+            }
         }
     }
 

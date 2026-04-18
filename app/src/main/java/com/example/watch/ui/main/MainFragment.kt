@@ -52,10 +52,9 @@ class MainFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.state.collectLatest { state ->
                 if (_binding != null) {
-                    adapter.items = state.watchlist
-                    adapter.selectedIds = state.selectedIds
+                    adapter.submitList(state.watchlist)
+                    adapter.updateSelectedIds(state.selectedIds)
                     binding.tvEmpty.visibility = if (state.watchlist.isEmpty()) View.VISIBLE else View.GONE
-
                 }
             }
         }
