@@ -1,7 +1,6 @@
 package com.example.watch.di
 
 import android.content.Context
-import com.example.watch.BuildConfig
 import com.example.watch.data.repository.MovieRepositoryImpl
 import com.example.watch.data.source.LocalDataSourceImpl
 import com.example.watch.data.source.RemoteDataSourceImpl

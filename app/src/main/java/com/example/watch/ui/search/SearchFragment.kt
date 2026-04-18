@@ -78,7 +78,11 @@ class SearchFragment : Fragment() {
                 when (effect) {
                     is SearchEffect.NavigateToAdd -> {
                         val bundle = Bundle().apply {
-                            putParcelable("selectedMovie", effect.movie)
+                            putString("imdbID", effect.movie.imdbID)
+                            putString("title", effect.movie.title)
+                            putString("year", effect.movie.year)
+                            putString("posterUrl", effect.movie.posterUrl)
+                            putString("type", effect.movie.type)
                         }
                         findNavController().navigate(R.id.addFragment, bundle)
                     }

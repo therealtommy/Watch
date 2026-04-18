@@ -59,18 +59,3 @@ class MainViewModel(
         }
     }
 }
-
-data class MainState(
-    val watchlist: List<Movie> = emptyList(),
-    val selectedIds: Set<String> = emptySet()
-)
-
-sealed class MainIntent {
-    object LoadWatchlist : MainIntent()
-    data class ToggleSelection(val imdbID: String) : MainIntent()
-    object DeleteSelected : MainIntent()
-}
-
-sealed class MainEffect {
-    data class ShowMessage(val text: String) : MainEffect()
-}

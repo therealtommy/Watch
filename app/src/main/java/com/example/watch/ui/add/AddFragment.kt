@@ -31,8 +31,20 @@ class AddFragment : Fragment() {
         observeState()
         observeEffect()
 
-        val selectedMovie = arguments?.getParcelable<OmdbMovie>("selectedMovie")
-        viewModel.processIntent(SetSelectedMovie(selectedMovie))
+        // Получаем поля из Bundle и собираем Movie
+        val imdbID = arguments?.getString("imdbID")
+        val title = arguments?.getString("title")
+        val year = arguments?.getString("year") ?: ""
+        val posterUrl = arguments?.getString("posterUrl") ?: ""
+        val type = arguments?.getString("type")
+
+        val selectedMovie = if (imdbID != null && title != null) {
+            com.example.watch.domain.model.Movie(imdbID, title, year, posterUrl, type)
+        } else {
+            null
+        }
+
+        viewModel.processIntent(AddIntent.SetSelectedMovie(selectedMovie))
 
         selectedMovie?.let { movie ->
             binding.etQuery.setText(movie.title)
