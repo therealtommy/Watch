@@ -1,4 +1,4 @@
-package com.example.watch.model
+package com.example.watch.network
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 

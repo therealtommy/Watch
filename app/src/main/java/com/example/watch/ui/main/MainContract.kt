@@ -1,16 +1,11 @@
-package com.example.watch.ui.main
-
 import com.example.watch.domain.model.Movie
 
-data class MainState(
-    val watchlist: List<Movie> = emptyList(),
-    val selectedIds: Set<String> = emptySet(),
-    val isLoading: Boolean = false,
-    val error: String? = null
+data class AddState(
+    val selectedMovie: Movie? = null,
+    val isAdding: Boolean = false
 )
 
-sealed class MainIntent {
-    object LoadWatchlist : MainIntent()
-    data class ToggleSelection(val imdbID: String) : MainIntent()
-    object DeleteSelected : MainIntent()
+sealed class AddIntent {
+    data class SetSelectedMovie(val movie: Movie?) : AddIntent()
+    object AddToWatchlist : AddIntent()
 }

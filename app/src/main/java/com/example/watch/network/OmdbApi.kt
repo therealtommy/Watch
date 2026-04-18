@@ -1,7 +1,5 @@
 package com.example.watch.network
 
-import com.example.watch.model.OmdbMovie
-import com.example.watch.model.OmdbSearchResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 

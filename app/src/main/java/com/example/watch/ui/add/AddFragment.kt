@@ -11,7 +11,7 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.watch.R
 import com.example.watch.databinding.FragmentAddBinding
-import com.example.watch.model.OmdbMovie
+import com.example.watch.network.OmdbMovie
 import com.example.watch.ui.add.AddIntent.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

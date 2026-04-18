@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.watch.data.model.MovieEntity
 import com.example.watch.data.source.MovieDao
-import com.example.watch.domain.model.Movie
 
-@Database(entities = [Movie::class], version = 2, exportSchema = false)  // увеличили version
+@Database(entities = [MovieEntity::class], version = 2, exportSchema = false)
 abstract class MovieDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
 
@@ -21,7 +21,7 @@ abstract class MovieDatabase : RoomDatabase() {
                     context.applicationContext,
                     MovieDatabase::class.java,
                     "watch_database"
-                ).fallbackToDestructiveMigration()  // разрешаем пересоздание при смене схемы
+                ).fallbackToDestructiveMigration() // для разработки
                     .build()
                 INSTANCE = instance
                 instance

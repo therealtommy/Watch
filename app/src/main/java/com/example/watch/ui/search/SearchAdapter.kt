@@ -1,17 +1,16 @@
 package com.example.watch.ui.search
 
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.watch.databinding.ItemSearchResultBinding
-import com.example.watch.model.OmdbMovie
+import com.example.watch.domain.model.Movie
 
-class SearchAdapter(private val onItemClick: (OmdbMovie) -> Unit) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
-    private var items: List<OmdbMovie> = emptyList()
+class SearchAdapter(private val onItemClick: (Movie) -> Unit) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
+    private var items: List<Movie> = emptyList()
 
-    fun submitList(list: List<OmdbMovie>) {
+    fun submitList(list: List<Movie>) {
         items = list
         notifyDataSetChanged()
     }
@@ -27,16 +26,14 @@ class SearchAdapter(private val onItemClick: (OmdbMovie) -> Unit) : RecyclerView
 
     override fun getItemCount() = items.size
 
-    class ViewHolder(private val binding: ItemSearchResultBinding, private val onItemClick: (OmdbMovie) -> Unit) :
+    class ViewHolder(private val binding: ItemSearchResultBinding, private val onItemClick: (Movie) -> Unit) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(movie: OmdbMovie) {
+        fun bind(movie: Movie) {
             binding.tvTitle.text = movie.title
             binding.tvYear.text = movie.year
             binding.tvType.text = "Type: ${movie.type ?: "N/A"}"
             Glide.with(binding.root).load(movie.posterUrl).into(binding.ivPoster)
-            itemView.setOnClickListener {
-                onItemClick(movie)
-            }
+            itemView.setOnClickListener { onItemClick(movie) }
         }
     }
 }
