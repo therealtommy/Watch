@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.watch.R
 import com.example.watch.databinding.FragmentMainBinding
+import com.example.watch.ui.main.MainIntent.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -26,7 +27,11 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        observeData()
+        observeState()
+        observeEffect()
+
+        // Отправляем Intent на загрузку списка
+        viewModel.processIntent(LoadWatchlist)
 
         binding.fabAdd.setOnClickListener {
             findNavController().navigate(R.id.action_main_to_add)
@@ -36,26 +41,32 @@ class MainFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = MovieAdapter { imdbID, checked ->
-            viewModel.toggleSelection(imdbID)
+            // Отправляем Intent на переключение выбора
+            viewModel.processIntent(ToggleSelection(imdbID))
         }
         binding.rvWatchlist.layoutManager = LinearLayoutManager(requireContext())
         binding.rvWatchlist.adapter = adapter
     }
 
-    private fun observeData() {
+    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.watchlist.collectLatest { movies ->
+            viewModel.state.collectLatest { state ->
                 if (_binding != null) {
-                    adapter.items = movies
-                    binding.tvEmpty.visibility = if (movies.isEmpty()) View.VISIBLE else View.GONE
+                    adapter.items = state.watchlist
+                    adapter.selectedIds = state.selectedIds
+                    binding.tvEmpty.visibility = if (state.watchlist.isEmpty()) View.VISIBLE else View.GONE
+
                 }
             }
         }
+    }
+
+    private fun observeEffect() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.selectedIds.collectLatest { ids ->
-                if (_binding != null) {
-                    binding.rvWatchlist.post {
-                        adapter.selectedIds = ids
+            viewModel.effect.collectLatest { effect ->
+                when (effect) {
+                    is MainEffect.ShowMessage -> {
+                        android.widget.Toast.makeText(requireContext(), effect.text, android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -69,7 +80,7 @@ class MainFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_delete_selected) {
-            viewModel.deleteSelected()
+            viewModel.processIntent(DeleteSelected)
             return true
         }
         return super.onOptionsItemSelected(item)

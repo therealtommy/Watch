@@ -35,13 +35,13 @@ class SearchFragment : Fragment() {
         val query = arguments?.getString("query") ?: ""
         val year = arguments?.getString("year")
         if (query.isNotEmpty()) {
-            viewModel.processIntent(Search(query, year))
+            viewModel.processIntent(SearchIntent.Search(query, year))
         }
     }
 
     private fun setupRecyclerView() {
         adapter = SearchAdapter { movie ->
-            viewModel.processIntent(SelectMovie(movie))
+            viewModel.processIntent(SearchIntent.SelectMovie(movie))
         }
         binding.rvSearchResults.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSearchResults.adapter = adapter
