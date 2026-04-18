@@ -12,10 +12,14 @@ class MainViewModelFactory(private val context: Context) : ViewModelProvider.Fac
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             val dao = MovieDatabase.getInstance(context).movieDao()
-            val repository = MovieRepository(dao, RetrofitClient.api, "174065d5")
+            val repository = MovieRepository(
+                movieDao = dao,
+                omdbApi = RetrofitClient.api,
+                apiKey = "174065d5"
+            )
             @Suppress("UNCHECKED_CAST")
             return MainViewModel(repository) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }
