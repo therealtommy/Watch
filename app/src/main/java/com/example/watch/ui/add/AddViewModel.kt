@@ -6,23 +6,38 @@ import com.example.watch.data.MovieRepository
 import com.example.watch.model.Movie
 import com.example.watch.model.OmdbMovie
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class AddViewModel(private val repository: MovieRepository) : ViewModel() {
-    private val _addEvent = MutableSharedFlow<AddEvent>()
-    val addEvent: SharedFlow<AddEvent> = _addEvent.asSharedFlow()
+class AddViewModel(
+    private val repository: MovieRepository
+) : ViewModel() {
 
-    private var selectedMovie: OmdbMovie? = null
+    private val _state = MutableStateFlow(AddState())
+    val state = _state.asStateFlow()
 
-    fun setSelectedMovie(movie: OmdbMovie?) {
-        selectedMovie = movie
+    private val _effect = MutableSharedFlow<AddEffect>()
+    val effect: SharedFlow<AddEffect> = _effect.asSharedFlow()
+
+    fun processIntent(intent: AddIntent) {
+        when (intent) {
+            is AddIntent.SetSelectedMovie -> setSelectedMovie(intent.movie)
+            AddIntent.AddToWatchlist -> addToWatchlist()
+        }
     }
 
-    fun addToWatchlist() {
-        val movie = selectedMovie ?: return
+    private fun setSelectedMovie(movie: OmdbMovie?) {
+        _state.update { it.copy(selectedMovie = movie) }
+    }
+
+    private fun addToWatchlist() {
+        val movie = _state.value.selectedMovie ?: return
         viewModelScope.launch {
+            _state.update { it.copy(isAdding = true) }
             val entity = Movie(
                 imdbID = movie.imdbID,
                 title = movie.title,
@@ -31,11 +46,12 @@ class AddViewModel(private val repository: MovieRepository) : ViewModel() {
                 type = movie.type
             )
             repository.addMovie(entity)
-            _addEvent.emit(AddEvent.MovieAdded)
+            _state.update { it.copy(isAdding = false) }
+            _effect.emit(AddEffect.MovieAdded)
         }
     }
 }
 
-sealed class AddEvent {
-    object MovieAdded : AddEvent()
+sealed class AddEffect {
+    object MovieAdded : AddEffect()
 }

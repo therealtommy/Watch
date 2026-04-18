@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.watch.R
 import com.example.watch.databinding.FragmentSearchBinding
+import com.example.watch.ui.search.SearchIntent.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -29,48 +30,57 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         observeState()
+        observeEffect()
 
         val query = arguments?.getString("query") ?: ""
         val year = arguments?.getString("year")
         if (query.isNotEmpty()) {
-            viewModel.search(query, year)
+            viewModel.processIntent(Search(query, year))
         }
     }
 
     private fun setupRecyclerView() {
         adapter = SearchAdapter { movie ->
-            val bundle = Bundle().apply {
-                putParcelable("selectedMovie", movie)
-            }
-            findNavController().navigate(R.id.addFragment, bundle)
+            viewModel.processIntent(SelectMovie(movie))
         }
         binding.rvSearchResults.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSearchResults.adapter = adapter
     }
 
     private fun observeState() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.state.collectLatest { state ->
-                when (state) {
-                    is SearchState.Initial -> {
-                        binding.tvEmpty.text = "Введите поисковый запрос"
-                        binding.tvEmpty.visibility = View.VISIBLE
-                        adapter.submitList(emptyList())
+                if (_binding != null) {
+                    adapter.submitList(state.movies)
+                    when {
+                        state.isLoading -> {
+                            binding.tvEmpty.text = "Загрузка..."
+                            binding.tvEmpty.visibility = View.VISIBLE
+                        }
+                        state.error != null -> {
+                            binding.tvEmpty.text = "Ошибка: ${state.error}"
+                            binding.tvEmpty.visibility = View.VISIBLE
+                        }
+                        state.movies.isEmpty() && !state.isLoading -> {
+                            binding.tvEmpty.text = "Ничего не найдено"
+                            binding.tvEmpty.visibility = View.VISIBLE
+                        }
+                        else -> binding.tvEmpty.visibility = View.GONE
                     }
-                    SearchState.Loading -> {
-                        binding.tvEmpty.text = "Загрузка..."
-                        binding.tvEmpty.visibility = View.VISIBLE
-                        adapter.submitList(emptyList())
-                    }
-                    is SearchState.Success -> {
-                        adapter.submitList(state.movies)
-                        binding.tvEmpty.visibility = if (state.movies.isEmpty()) View.VISIBLE else View.GONE
-                        if (state.movies.isEmpty()) binding.tvEmpty.text = "Ничего не найдено"
-                    }
-                    is SearchState.Error -> {
-                        binding.tvEmpty.text = "Ошибка: ${state.message}"
-                        binding.tvEmpty.visibility = View.VISIBLE
-                        adapter.submitList(emptyList())
+                }
+            }
+        }
+    }
+
+    private fun observeEffect() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effect.collectLatest { effect ->
+                when (effect) {
+                    is SearchEffect.NavigateToAdd -> {
+                        val bundle = Bundle().apply {
+                            putParcelable("selectedMovie", effect.movie)
+                        }
+                        findNavController().navigate(R.id.addFragment, bundle)
                     }
                 }
             }

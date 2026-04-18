@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.example.watch.R
 import com.example.watch.databinding.FragmentAddBinding
 import com.example.watch.model.OmdbMovie
+import com.example.watch.ui.add.AddIntent.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -27,10 +28,11 @@ class AddFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observeEvents()
+        observeState()
+        observeEffect()
 
         val selectedMovie = arguments?.getParcelable<OmdbMovie>("selectedMovie")
-        viewModel.setSelectedMovie(selectedMovie)
+        viewModel.processIntent(SetSelectedMovie(selectedMovie))
 
         selectedMovie?.let { movie ->
             binding.etQuery.setText(movie.title)
@@ -52,15 +54,23 @@ class AddFragment : Fragment() {
         }
 
         binding.btnAdd.setOnClickListener {
-            viewModel.addToWatchlist()
+            viewModel.processIntent(AddToWatchlist)
         }
     }
 
-    private fun observeEvents() {
-        lifecycleScope.launch {
-            viewModel.addEvent.collectLatest { event ->
-                when (event) {
-                    AddEvent.MovieAdded -> findNavController().navigateUp()
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                binding.btnAdd.isEnabled = !state.isAdding && state.selectedMovie != null
+            }
+        }
+    }
+
+    private fun observeEffect() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effect.collectLatest { effect ->
+                when (effect) {
+                    AddEffect.MovieAdded -> findNavController().navigateUp()
                 }
             }
         }
