@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.watch.data.source.MovieDao
 import com.example.watch.domain.model.Movie
 
 @Database(entities = [Movie::class], version = 2, exportSchema = false)  // увеличили version
