@@ -1,7 +1,7 @@
 package com.example.watch.db
 
 import androidx.room.*
-import com.example.watch.model.Movie
+import com.example.watch.domain.model.Movie
 import kotlinx.coroutines.flow.Flow
 
 @Dao

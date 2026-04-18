@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.watch.BuildConfig
-import com.example.watch.data.MovieRepository
+import com.example.watch.domain.repository.MovieRepository
 import com.example.watch.db.MovieDatabase
 import com.example.watch.network.RetrofitClient
 

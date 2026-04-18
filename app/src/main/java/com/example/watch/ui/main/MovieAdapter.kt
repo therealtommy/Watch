@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.watch.databinding.ItemMovieBinding
-import com.example.watch.model.Movie
+import com.example.watch.domain.model.Movie
 
 class MovieAdapter(
     private val onCheckChanged: (String, Boolean) -> Unit

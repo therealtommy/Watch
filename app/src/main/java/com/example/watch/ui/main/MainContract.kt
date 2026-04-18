@@ -1,6 +1,6 @@
 package com.example.watch.ui.main
 
-import com.example.watch.model.Movie
+import com.example.watch.domain.model.Movie
 
 data class MainState(
     val watchlist: List<Movie> = emptyList(),

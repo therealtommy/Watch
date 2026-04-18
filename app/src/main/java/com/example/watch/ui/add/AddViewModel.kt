@@ -2,8 +2,8 @@ package com.example.watch.ui.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.watch.data.MovieRepository
-import com.example.watch.model.Movie
+import com.example.watch.domain.repository.MovieRepository
+import com.example.watch.domain.model.Movie
 import com.example.watch.model.OmdbMovie
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
