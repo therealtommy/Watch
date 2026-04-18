@@ -3,23 +3,16 @@ package com.example.watch.ui.main
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.watch.BuildConfig
-import com.example.watch.domain.repository.MovieRepository
-import com.example.watch.db.MovieDatabase
-import com.example.watch.network.RetrofitClient
+import com.example.watch.di.RepositoryProvider
+import com.example.watch.domain.usecase.DeleteMoviesUseCase
+import com.example.watch.domain.usecase.GetWatchlistUseCase
 
 class MainViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            val dao = MovieDatabase.getInstance(context).movieDao()
-            val repository = MovieRepository(
-                movieDao = dao,
-                omdbApi = RetrofitClient.api,
-                apiKey = "174065d5"
-            )
-            @Suppress("UNCHECKED_CAST")
-            return MainViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        val repository = RepositoryProvider.provideRepository(context)
+        val getWatchlistUseCase = GetWatchlistUseCase(repository)
+        val deleteMoviesUseCase = DeleteMoviesUseCase(repository)
+        @Suppress("UNCHECKED_CAST")
+        return MainViewModel(getWatchlistUseCase, deleteMoviesUseCase) as T
     }
 }
